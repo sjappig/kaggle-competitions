@@ -1,0 +1,3 @@
+airbus-ship-detection/train/*.jpg
+airbus-ship-detection/train_ship_segmentations.csv
+airbus-ship-detection/venv
