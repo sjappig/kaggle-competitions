@@ -25,7 +25,7 @@ def sample(df, n=None):
     if n is not None:
         df = df.sample(n=n)
 
-    return df
+    return df.reindex(numpy.random.permutation(df.index))
 
 
 def generate_x_y(df):
