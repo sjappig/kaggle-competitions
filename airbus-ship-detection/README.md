@@ -6,9 +6,9 @@
 
 * Activate it: `source venv/bin/activate`
 
-* Install dependencies: `pip install requirements.txt`
+* Install dependencies: `pip install -r requirements.txt`
 
-* Train model: `python work/train.py`
+* Train model: `python -m work.train`
 
-* View few randomly chosen samples: `python work/view.py`
+* View few randomly chosen samples: `python -m work.view`
 
