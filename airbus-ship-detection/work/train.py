@@ -45,6 +45,23 @@ def get_feature_extraction_model(input_shape):
     return model
 
 
+def create_model():
+    feat_model = get_feature_extraction_model((768, 768, 3))
+    output = Conv2DTranspose(filters=3, kernel_size=3, strides=(2, 2), padding='same', activation='relu')(feat_model.output)
+    output = BatchNormalization()(output)
+    output = Conv2DTranspose(filters=3, kernel_size=3, strides=(2, 2), padding='same', activation='relu')(output)
+    output = BatchNormalization()(output)
+    output = Conv2DTranspose(filters=3, kernel_size=3, strides=(2, 2), padding='same', activation='relu')(output)
+    output = BatchNormalization()(output)
+    output = Conv2DTranspose(filters=1, kernel_size=3, strides=(2, 2), padding='same', activation='sigmoid')(output)
+    output = Reshape((768, 768))(output)
+
+    return Model(
+        inputs=[feat_model.input],
+        outputs=[output],
+    )
+
+
 if __name__ == '__main__':
     args = parse_args()
 
@@ -69,20 +86,7 @@ if __name__ == '__main__':
 
     print('{} pixels, {} has ship, {} do not'.format(all_pixels, ship_pixels, blank_pixels))
 
-    feat_model = get_feature_extraction_model((768, 768, 3))
-    output = Conv2DTranspose(filters=3, kernel_size=3, strides=(2, 2), padding='same', activation='relu')(feat_model.output)
-    output = BatchNormalization()(output)
-    output = Conv2DTranspose(filters=3, kernel_size=3, strides=(2, 2), padding='same', activation='relu')(output)
-    output = BatchNormalization()(output)
-    output = Conv2DTranspose(filters=3, kernel_size=3, strides=(2, 2), padding='same', activation='relu')(output)
-    output = BatchNormalization()(output)
-    output = Conv2DTranspose(filters=1, kernel_size=3, strides=(2, 2), padding='same', activation='sigmoid')(output)
-    output = Reshape((768, 768))(output)
-
-    model = Model(
-        inputs=[feat_model.input],
-        outputs=[output],
-    )
+    model = create_model()
 
     model.compile(
         loss='categorical_crossentropy',
