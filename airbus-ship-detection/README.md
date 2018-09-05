@@ -8,7 +8,7 @@
 
 * Install dependencies: `pip install -r requirements.txt`
 
-* Train model: `python -m work.train`
+* Train model: `python -m work.train --samples 64 --epochs 4 --batch 16 --val 0.2` (--help to see instructions)
 
 * View few randomly chosen samples: `python -m work.view`
 

@@ -1,3 +1,4 @@
+import argparse
 import itertools
 import os.path
 
@@ -6,6 +7,18 @@ from keras.models import Model, Sequential
 import numpy
 
 from . import common
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Train segmentation network')
+
+    parser.add_argument('--samples', type=int, default=None, help='number of samples; if not given, use all')
+    parser.add_argument('--epochs', type=int, default=20, help='number of epochs')
+    parser.add_argument('--batch', type=int, default=32, help='batch size')
+    parser.add_argument('--val', type=float, default=0.2, help='fraction of samples to use for validation')
+
+    return parser.parse_args()
+
 
 def get_feature_extraction_model(input_shape):
     model = Sequential()
@@ -33,12 +46,14 @@ def get_feature_extraction_model(input_shape):
 
 
 if __name__ == '__main__':
+    args = parse_args()
+
     segments_df = common.read_segments()
 
     print('{} entries available'.format(len(segments_df)), end=' ')
     print('of which {} has ships'.format(segments_df.EncodedPixels.count()))
 
-    samples = common.sample(segments_df, n=2048)
+    samples = common.sample(segments_df, n=args.samples)
 
     x, y = zip(*common.generate_x_y(samples))
 
@@ -80,9 +95,9 @@ if __name__ == '__main__':
     model.fit(
         x_train,
         y_train,
-        epochs=20,
-        batch_size=32,
-        validation_split=0.2,
+        epochs=args.epochs,
+        batch_size=args.batch,
+        validation_split=args.val,
     )
 
     common.save_model(model)
