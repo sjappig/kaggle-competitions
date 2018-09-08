@@ -1,10 +1,7 @@
 import argparse
-import itertools
-import os.path
 
 from keras.layers import BatchNormalization, Conv2D, Conv2DTranspose, Dense, Flatten, MaxPooling2D, Reshape
 from keras.models import Model, Sequential
-import numpy
 
 from . import common
 
@@ -63,33 +60,6 @@ def create_model():
     )
 
 
-def generate_batches(samples, batch_size):
-    x_batch = None
-    y_batch = None
-    batch_idx = 0
-    ctr = 0
-    while True:
-        for x, y in common.generate_x_y(samples):
-            if x_batch is None or y_batch is None:
-                x_batch = numpy.array([x] * batch_size)
-                y_batch = numpy.array([y] * batch_size)
-
-            if batch_idx == batch_size:
-                yield (x_batch, y_batch)
-                batch_idx = 0
-
-            x_batch[batch_idx] = x
-            y_batch[batch_idx] = y
-            batch_idx += 1
-            ctr += 1
-
-        yield (x_batch[0:batch_idx], y_batch[0:batch_idx])
-
-
-def get_steps_per_epoch(epoch_size, batch_size):
-    return int(numpy.ceil(epoch_size / batch_size))
-
-
 if __name__ == '__main__':
     args = parse_args()
 
@@ -118,7 +88,7 @@ if __name__ == '__main__':
     val_data = samples.iloc[train_len:]
 
     batch_size = args.batch
-    steps_per_epoch = get_steps_per_epoch(train_len, batch_size)
+    steps_per_epoch = common.get_steps_per_epoch(train_len, batch_size)
     epochs = args.epochs
     max_queue_size = args.queue
 
@@ -131,12 +101,12 @@ if __name__ == '__main__':
     print('max queue size: {}'.format(max_queue_size))
 
     model.fit_generator(
-        generate_batches(train_data, batch_size),
+        common.generate_batches(train_data, batch_size),
         steps_per_epoch=steps_per_epoch,
         epochs=epochs,
         max_queue_size=max_queue_size,
-        validation_data=generate_batches(val_data, batch_size),
-        validation_steps=get_steps_per_epoch(val_len, batch_size),
+        validation_data=common.generate_batches(val_data, batch_size),
+        validation_steps=common.get_steps_per_epoch(val_len, batch_size),
     )
 
     common.save_model(model)

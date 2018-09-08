@@ -36,12 +36,40 @@ def generate_x_y(df):
         )
 
 
+def generate_batches(samples, batch_size):
+    x_batch = None
+    y_batch = None
+    batch_idx = 0
+
+    while True:
+        for x, y in generate_x_y(samples):
+
+            if x_batch is None or y_batch is None:
+                x_batch = numpy.array([x] * batch_size)
+                y_batch = numpy.array([y] * batch_size)
+
+            if batch_idx == batch_size:
+                yield (x_batch, y_batch)
+                batch_idx = 0
+
+            x_batch[batch_idx] = x
+            y_batch[batch_idx] = y
+            batch_idx += 1
+
+        yield (x_batch[0:batch_idx], y_batch[0:batch_idx])
+
+
+def get_steps_per_epoch(epoch_size, batch_size):
+    return int(numpy.ceil(epoch_size / batch_size))
+
+
 def load_model():
     return keras.models.load_model(_MODEL_FILENAME)
 
 
 def save_model(model):
     model.save(_MODEL_FILENAME)
+
 
 def _is_valid_image_id(image_id):
     filename = _from_image_id_to_filename(image_id)
