@@ -3,3 +3,4 @@ airbus-ship-detection/train_ship_segmentations.csv
 airbus-ship-detection/shipmodel.h5
 airbus-ship-detection/venv
 airbus-ship-detection/work/__pycache__
+*.swp
