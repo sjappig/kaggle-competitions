@@ -16,6 +16,7 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=20, help='number of epochs')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--val', type=float, default=0.2, help='fraction of samples to use for validation')
+    parser.add_argument('--queue', type=int, default=10, help='max size of queue used for prefetching batches')
 
     return parser.parse_args()
 
@@ -62,29 +63,35 @@ def create_model():
     )
 
 
+def generate_batches(samples, batch_size):
+    x_batch = None
+    y_batch = None
+    batch_idx = 0
+    ctr = 0
+    while True:
+        for x, y in common.generate_x_y(samples):
+            if x_batch is None or y_batch is None:
+                x_batch = numpy.array([x] * batch_size)
+                y_batch = numpy.array([y] * batch_size)
+
+            if batch_idx == batch_size:
+                yield (x_batch, y_batch)
+                batch_idx = 0
+
+            x_batch[batch_idx] = x
+            y_batch[batch_idx] = y
+            batch_idx += 1
+            ctr += 1
+
+        yield (x_batch[0:batch_idx], y_batch[0:batch_idx])
+
+
+def get_steps_per_epoch(epoch_size, batch_size):
+    return int(numpy.ceil(epoch_size / batch_size))
+
+
 if __name__ == '__main__':
     args = parse_args()
-
-    segments_df = common.read_segments()
-
-    print('{} entries available'.format(len(segments_df)), end=' ')
-    print('of which {} has ships'.format(segments_df.EncodedPixels.count()))
-
-    samples = common.sample(segments_df, n=args.samples)
-
-    x, y = zip(*common.generate_x_y(samples))
-
-    x_train = numpy.array(x)
-    y_train = numpy.array(y)
-
-    print('Input shape: {}'.format(x_train.shape))
-    print('Output shape: {}'.format(y_train.shape))
-
-    all_pixels = len(y_train) * 768 * 768
-    ship_pixels = numpy.sum(y_train)
-    blank_pixels = all_pixels - ship_pixels
-
-    print('{} pixels, {} has ship, {} do not'.format(all_pixels, ship_pixels, blank_pixels))
 
     model = create_model()
 
@@ -96,12 +103,40 @@ if __name__ == '__main__':
 
     model.summary()
 
-    model.fit(
-        x_train,
-        y_train,
-        epochs=args.epochs,
-        batch_size=args.batch,
-        validation_split=args.val,
+    segments_df = common.read_segments()
+
+    print('{} entries available'.format(len(segments_df)), end=' ')
+    print('of which {} has ships'.format(segments_df.EncodedPixels.count()))
+
+    samples = common.sample(segments_df, n=args.samples)
+    sample_count = len(samples)
+
+    val_len = int(args.val * sample_count)
+    train_len = sample_count - val_len
+
+    train_data = samples.iloc[:train_len]
+    val_data = samples.iloc[train_len:]
+
+    batch_size = args.batch
+    steps_per_epoch = get_steps_per_epoch(train_len, batch_size)
+    epochs = args.epochs
+    max_queue_size = args.queue
+
+    print('sample count: {}'.format(sample_count))
+    print('train length: {}'.format(train_len))
+    print('validation length: {}'.format(val_len))
+    print('batch size: {}'.format(batch_size))
+    print('steps per epoch: {}'.format(steps_per_epoch))
+    print('epochs: {}'.format(epochs))
+    print('max queue size: {}'.format(max_queue_size))
+
+    model.fit_generator(
+        generate_batches(train_data, batch_size),
+        steps_per_epoch=steps_per_epoch,
+        epochs=epochs,
+        max_queue_size=max_queue_size,
+        validation_data=generate_batches(val_data, batch_size),
+        validation_steps=get_steps_per_epoch(val_len, batch_size),
     )
 
     common.save_model(model)
