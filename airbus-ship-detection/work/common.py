@@ -65,7 +65,7 @@ def generate_x_y(df, test=False):
     for _, sample in df.iterrows():
         mask = (
             None if test else
-            _encoded_pixels_to_mask(sample.EncodedPixels, (768, 768))
+            encoded_pixels_to_mask(sample.EncodedPixels, (768, 768))
         )
 
         yield (
@@ -102,7 +102,7 @@ def get_steps_per_epoch(epoch_size, batch_size):
 
 
 def mask_to_encoded_pixels(mask):
-    mask = mask.flatten()
+    mask = mask.T.flatten()
     indices = numpy.where(mask > 0.5)[0]
 
     first_index = None
@@ -151,7 +151,7 @@ def _image_id_to_array(image_id, test=False):
     return keras.preprocessing.image.img_to_array(image) / 255
 
 
-def _encoded_pixels_to_mask(encoded_pixels, shape):
+def encoded_pixels_to_mask(encoded_pixels, shape):
     rle = [int(x) for x in encoded_pixels.split(' ')]
 
     indices = list(
