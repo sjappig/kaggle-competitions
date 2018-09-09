@@ -2,6 +2,6 @@ airbus-ship-detection/test/*.jpg
 airbus-ship-detection/train/*.jpg
 airbus-ship-detection/shipmodel.h5
 airbus-ship-detection/venv
-airbus-ship-detection/work/__pycache__
+*.pyc
 *.csv
 *.swp
