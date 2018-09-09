@@ -48,28 +48,28 @@ def read_sample_submission():
     return submission_df[valid_indices]
 
 
-def sample(df, n, dropna=True, shuffle=True):
+def sample(dataframe, subsample_size, dropna=True, shuffle=True):
     if dropna:
-        df = df.dropna()
+        dataframe = dataframe.dropna()
 
-    if n is not None:
-        df = df.sample(n=n)
+    if subsample_size is not None:
+        dataframe = dataframe.sample(n=subsample_size)
 
     if not shuffle:
-        return df
+        return dataframe
 
-    return df.reindex(numpy.random.permutation(df.index))
+    return dataframe.reindex(numpy.random.permutation(dataframe.index))
 
 
-def generate_x_y(df, test=False):
-    for _, sample in df.iterrows():
+def generate_x_y(dataframe, test=False):
+    for _, value in dataframe.iterrows():
         mask = (
             None if test else
-            encoded_pixels_to_mask(sample.EncodedPixels, (768, 768))
+            encoded_pixels_to_mask(value.EncodedPixels, (768, 768))
         )
 
         yield (
-            _image_id_to_array(sample.ImageId, test),
+            _image_id_to_array(value.ImageId, test),
             mask,
         )
 
@@ -80,18 +80,18 @@ def generate_batches(samples, batch_size, test=False):
     batch_idx = 0
 
     while True:
-        for x, y in generate_x_y(samples, test):
+        for sample_x, sample_y in generate_x_y(samples, test):
 
             if x_batch is None or y_batch is None:
-                x_batch = numpy.array([x] * batch_size)
-                y_batch = numpy.array([y] * batch_size)
+                x_batch = numpy.array([sample_x] * batch_size)
+                y_batch = numpy.array([sample_y] * batch_size)
 
             if batch_idx == batch_size:
                 yield (x_batch, y_batch)
                 batch_idx = 0
 
-            x_batch[batch_idx] = x
-            y_batch[batch_idx] = y
+            x_batch[batch_idx] = sample_x
+            y_batch[batch_idx] = sample_y
             batch_idx += 1
 
         yield (x_batch[0:batch_idx], y_batch[0:batch_idx])
@@ -154,9 +154,9 @@ def _image_id_to_array(image_id, test=False):
 def encoded_pixels_to_mask(encoded_pixels, shape):
     rle = [int(x) for x in encoded_pixels.split(' ')]
 
-    indices = list(
-        itertools.chain.from_iterable(range(rle[idx] - 1, rle[idx] + rle[idx + 1] - 1) for idx in range(0, len(rle), 2))
-    )
+    indices = list(itertools.chain.from_iterable(
+        range(rle[idx] - 1, rle[idx] + rle[idx + 1] - 1) for idx in range(0, len(rle), 2)
+    ))
 
     mask = numpy.zeros(shape[0] * shape[1])
     mask[indices] = 1

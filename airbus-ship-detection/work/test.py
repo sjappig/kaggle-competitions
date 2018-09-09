@@ -16,7 +16,21 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def generate_predictions(model, batch_queue):
+    while True:
+        batch = batch_queue.get()
+        batch_queue.task_done()
+        if batch is None:
+            break
+        predictions = model.predict_on_batch(batch)
+
+        yield from predictions
+
+        print('.', end='')
+        sys.stdout.flush()
+
+
+def main():
     args = parse_args()
 
     model = common.load_model()
@@ -25,7 +39,7 @@ if __name__ == '__main__':
 
     print('{} entries available'.format(len(sample_submission_df)))
 
-    samples = common.sample(sample_submission_df, n=args.samples, dropna=False, shuffle=False)
+    samples = common.sample(sample_submission_df, subsample_size=args.samples, dropna=False, shuffle=False)
     sample_count = len(samples)
 
     batch_size = args.batch
@@ -55,17 +69,9 @@ if __name__ == '__main__':
     worker.start()
 
     ctr = 0
-    while True:
-        batch = batch_queue.get()
-        batch_queue.task_done()
-        if batch is None:
-            break
-        predictions = model.predict_on_batch(batch)
-        for prediction in predictions:
-            submission.iloc[ctr].EncodedPixels = common.mask_to_encoded_pixels(prediction)
-            ctr += 1
-        print('.', end='')
-        sys.stdout.flush()
+    for prediction in generate_predictions(model, batch_queue):
+        submission.iloc[ctr].EncodedPixels = common.mask_to_encoded_pixels(prediction)
+        ctr += 1
 
     print('done')
     batch_queue.join()
@@ -73,3 +79,6 @@ if __name__ == '__main__':
 
     submission.to_csv('submission.csv', index=False)
 
+
+if __name__ == '__main__':
+    main()

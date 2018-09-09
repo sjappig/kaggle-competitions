@@ -17,7 +17,7 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
 
     model_name = 'work.models.{}'.format(args.model)
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     print('{} entries available'.format(len(segments_df)), end=' ')
     print('of which {} has ships'.format(segments_df.EncodedPixels.count()))
 
-    samples = common.sample(segments_df, n=args.samples)
+    samples = common.sample(segments_df, subsample_size=args.samples)
     sample_count = len(samples)
 
     val_len = int(args.val * sample_count)
@@ -72,3 +72,5 @@ if __name__ == '__main__':
 
     common.save_model(model)
 
+if __name__ == '__main__':
+    main()

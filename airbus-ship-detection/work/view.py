@@ -3,22 +3,23 @@ import numpy
 
 from . import common
 
-if __name__ == '__main__':
+
+def main():
     segments_df = common.read_segments()
 
-    samples = common.sample(segments_df, n=3)
+    samples = common.sample(segments_df, subsample_size=3)
 
-    x, y = zip(*common.generate_x_y(samples))
+    x_samples, y_samples = zip(*common.generate_x_y(samples))
 
-    x_train = numpy.array(x)
-    y_train = numpy.array(y)
+    x_samples = numpy.array(x_samples)
+    y_samples = numpy.array(y_samples)
 
     model = common.load_model()
 
     for idx in range(0, 3):
-        mask = model.predict(x_train[idx:idx+1])[0]
-        img = x_train[idx]
-        truth = y_train[idx]
+        mask = model.predict(x_samples[idx:idx+1])[0]
+        img = x_samples[idx]
+        truth = y_samples[idx]
         plot.subplot(3, 3, idx*3 + 1)
         plot.imshow(img)
         plot.subplot(3, 3, idx*3 + 2)
@@ -27,3 +28,7 @@ if __name__ == '__main__':
         plot.imshow(truth)
 
     plot.show()
+
+
+if __name__ == '__main__':
+    main()
