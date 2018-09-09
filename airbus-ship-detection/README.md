@@ -15,7 +15,7 @@
 * Train a model: `python -m work.train --samples 64 --epochs 4 --batch 16 --val 0.2 --trained_model my_model.h5` (`--help` to see instructions)
 
 
-## Creating submission
+## Create submission
 
 * Copy test JPEGs to *test/* and *sample_submission.csv* in this directory
 
