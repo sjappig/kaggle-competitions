@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument('--val', type=float, default=0.2, help='fraction of samples to use for validation')
     parser.add_argument('--queue', type=int, default=10, help='max size of queue used for prefetching batches')
     parser.add_argument('--model', type=str, default='shallow_deconv', help='model to use from work.models-package')
+    parser.add_argument('--trained_model', type=str, default=common.MODEL_FILENAME, help='trained model filename')
 
     return parser.parse_args()
 
@@ -70,7 +71,7 @@ def main():
         validation_steps=common.get_steps_per_epoch(val_len, batch_size),
     )
 
-    common.save_model(model)
+    common.save_model(model, args.trained_model)
 
 if __name__ == '__main__':
     main()

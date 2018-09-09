@@ -12,6 +12,8 @@ def parse_args():
     parser.add_argument('--samples', type=int, default=None, help='number of samples; if not given, use all')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--queue', type=int, default=10, help='max size of queue used for prefetching batches')
+    parser.add_argument('--trained_model', type=str, default=common.MODEL_FILENAME, help='trained model filename')
+    parser.add_argument('--submission', type=str, default=common.SUBMISSION_FILENAME, help='submission filename')
 
     return parser.parse_args()
 
@@ -33,7 +35,7 @@ def generate_predictions(model, batch_queue):
 def main():
     args = parse_args()
 
-    model = common.load_model()
+    model = common.load_model(args.trained_model)
 
     sample_submission_df = common.read_sample_submission()
 
@@ -77,7 +79,7 @@ def main():
     batch_queue.join()
     worker.join()
 
-    submission.to_csv('submission.csv', index=False)
+    common.save_submission(submission, args.submission)
 
 
 if __name__ == '__main__':

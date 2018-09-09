@@ -1,10 +1,22 @@
+import argparse
+
 import matplotlib.pyplot as plot
 import numpy
 
 from . import common
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='View samples with their correct segmentations and predictions')
+
+    parser.add_argument('--trained_model', type=str, default=common.MODEL_FILENAME, help='trained model filename')
+
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+
     segments_df = common.read_segments()
 
     samples = common.sample(segments_df, subsample_size=3)
@@ -14,7 +26,7 @@ def main():
     x_samples = numpy.array(x_samples)
     y_samples = numpy.array(y_samples)
 
-    model = common.load_model()
+    model = common.load_model(args.trained_model)
 
     for idx in range(0, 3):
         mask = model.predict(x_samples[idx:idx+1])[0]

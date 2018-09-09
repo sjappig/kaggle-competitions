@@ -7,7 +7,9 @@ import numpy
 import pandas
 
 
-_MODEL_FILENAME = 'shipmodel.h5'
+MODEL_FILENAME = 'shipmodel.h5'
+SUBMISSION_FILENAME = 'submission.csv'
+
 _TRAIN_DIRECTORY = 'train'
 _TEST_DIRECTORY = 'test'
 _SEGMENTS_FILENAME = 'train_ship_segmentations.csv'
@@ -126,12 +128,16 @@ def mask_to_encoded_pixels(mask):
     return ' '.join(str(x) for x in rle)
 
 
-def load_model():
-    return keras.models.load_model(_MODEL_FILENAME)
+def load_model(filename):
+    return keras.models.load_model(filename)
 
 
-def save_model(model):
-    model.save(_MODEL_FILENAME)
+def save_model(model, filename):
+    model.save(filename)
+
+
+def save_submission(submission, filename):
+    submission.to_csv(filename, index=False)
 
 
 def _is_valid_image_id(image_id, test=False):
