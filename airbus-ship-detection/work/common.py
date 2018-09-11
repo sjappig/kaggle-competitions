@@ -103,9 +103,9 @@ def get_steps_per_epoch(epoch_size, batch_size):
     return int(numpy.ceil(epoch_size / batch_size))
 
 
-def mask_to_encoded_pixels(mask):
+def mask_to_encoded_pixels(mask, threshold=0.5):
     mask = mask.T.flatten()
-    indices = numpy.where(mask > 0.5)[0]
+    indices = numpy.where(mask >= threshold)[0]
 
     first_index = None
     length = 1

@@ -10,6 +10,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description='View samples with their correct segmentations and predictions')
 
     parser.add_argument('--trained_model', type=str, default=common.MODEL_FILENAME, help='trained model filename')
+    parser.add_argument(
+        '--threshold', type=float, default=0.5, help='threshold when transforming probablity map to binary mask'
+    )
 
     return parser.parse_args()
 
@@ -30,6 +33,8 @@ def main():
 
     for idx in range(0, 3):
         mask = model.predict(x_samples[idx:idx+1])[0]
+        mask[numpy.where(mask > args.threshold)] = 1
+        mask[numpy.where(mask != 1)] = 0
         img = x_samples[idx]
         truth = y_samples[idx]
         plot.subplot(3, 3, idx*3 + 1)

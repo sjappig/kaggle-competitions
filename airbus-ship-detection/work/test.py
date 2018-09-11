@@ -14,6 +14,9 @@ def parse_args():
     parser.add_argument('--queue', type=int, default=10, help='max size of queue used for prefetching batches')
     parser.add_argument('--trained_model', type=str, default=common.MODEL_FILENAME, help='trained model filename')
     parser.add_argument('--submission', type=str, default=common.SUBMISSION_FILENAME, help='submission filename')
+    parser.add_argument(
+        '--threshold', type=float, default=0.5, help='threshold when transforming probablity map to binary mask'
+    )
 
     return parser.parse_args()
 
@@ -47,11 +50,13 @@ def main():
     batch_size = args.batch
     steps_per_epoch = common.get_steps_per_epoch(sample_count, batch_size)
     max_queue_size = args.queue
+    threshold = args.threshold
 
     print('sample count: {}'.format(sample_count))
     print('batch size: {}'.format(batch_size))
     print('steps per epoch: {}'.format(steps_per_epoch))
     print('max queue size: {}'.format(max_queue_size))
+    print('threshold: {}'.format(threshold))
 
     submission = samples.copy()
     batch_queue = queue.Queue(max_queue_size)
@@ -72,7 +77,7 @@ def main():
 
     ctr = 0
     for prediction in generate_predictions(model, batch_queue):
-        submission.iloc[ctr].EncodedPixels = common.mask_to_encoded_pixels(prediction)
+        submission.iloc[ctr].EncodedPixels = common.mask_to_encoded_pixels(prediction, threshold)
         ctr += 1
 
     print('done')
