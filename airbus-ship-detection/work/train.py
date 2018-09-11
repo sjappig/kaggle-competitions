@@ -14,6 +14,7 @@ def parse_args():
     parser.add_argument('--queue', type=int, default=10, help='max size of queue used for prefetching batches')
     parser.add_argument('--model', type=str, default='shallow_deconv', help='model to use from work.models-package')
     parser.add_argument('--trained_model', type=str, default=common.MODEL_FILENAME, help='trained model filename')
+    parser.add_argument('--save_interval', type=int, metavar='N', default=None, help='in addition to final save, save model after each N epochs')
 
     return parser.parse_args()
 
@@ -62,16 +63,24 @@ def main():
     print('epochs: {}'.format(epochs))
     print('max queue size: {}'.format(max_queue_size))
 
-    model.fit_generator(
-        common.generate_batches(train_data, batch_size),
-        steps_per_epoch=steps_per_epoch,
-        epochs=epochs,
-        max_queue_size=max_queue_size,
-        validation_data=common.generate_batches(val_data, batch_size),
-        validation_steps=common.get_steps_per_epoch(val_len, batch_size),
-    )
+    while epochs > 0:
+        sub_epochs = epochs if args.save_interval is None else min(args.save_interval, epochs)
 
-    common.save_model(model, args.trained_model)
+        model.fit_generator(
+            common.generate_batches(train_data, batch_size),
+            steps_per_epoch=steps_per_epoch,
+            epochs=sub_epochs,
+            max_queue_size=max_queue_size,
+            validation_data=common.generate_batches(val_data, batch_size),
+            validation_steps=common.get_steps_per_epoch(val_len, batch_size),
+        )
+
+        print('Saving model... ', end='')
+        common.save_model(model, args.trained_model)
+        print('done')
+
+        epochs -= sub_epochs
+
 
 if __name__ == '__main__':
     main()
