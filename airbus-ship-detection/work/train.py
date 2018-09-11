@@ -14,9 +14,20 @@ def parse_args():
     parser.add_argument('--queue', type=int, default=10, help='max size of queue used for prefetching batches')
     parser.add_argument('--model', type=str, default='shallow_deconv', help='model to use from work.models-package')
     parser.add_argument('--trained_model', type=str, default=common.MODEL_FILENAME, help='trained model filename')
-    parser.add_argument('--save_interval', type=int, metavar='N', default=None, help='in addition to final save, save model after each N epochs')
+    parser.add_argument(
+        '--save_interval', type=int, metavar='N', default=None, help='do additional saves of model after each N epochs'
+    )
 
     return parser.parse_args()
+
+
+def read_samples(subsample_size):
+    segments_df = common.read_segments()
+
+    print('{} entries available'.format(len(segments_df)), end=' ')
+    print('of which {} has ships'.format(segments_df.EncodedPixels.count()))
+
+    return common.sample(segments_df, subsample_size=subsample_size)
 
 
 def main():
@@ -36,12 +47,7 @@ def main():
 
     model.summary()
 
-    segments_df = common.read_segments()
-
-    print('{} entries available'.format(len(segments_df)), end=' ')
-    print('of which {} has ships'.format(segments_df.EncodedPixels.count()))
-
-    samples = common.sample(segments_df, subsample_size=args.samples)
+    samples = read_samples(args.samples)
     sample_count = len(samples)
 
     val_len = int(args.val * sample_count)
