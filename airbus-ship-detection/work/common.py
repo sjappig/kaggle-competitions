@@ -158,6 +158,9 @@ def _image_id_to_array(image_id, test=False):
 
 
 def encoded_pixels_to_mask(encoded_pixels, shape):
+    if pandas.isna(encoded_pixels):
+        return numpy.zeros(shape)
+
     rle = [int(x) for x in encoded_pixels.split(' ')]
 
     indices = list(itertools.chain.from_iterable(
